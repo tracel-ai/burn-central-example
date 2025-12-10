@@ -1,0 +1,1 @@
+# Burn Central Example (MNIST)
