@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::{
     data::{MnistBatcher, MnistItemPrepared, MnistMapper, Transform},
-    model::Model,
+    model::{MnistModel, MnistModelArtifact},
 };
 
 use burn::{
@@ -19,7 +19,6 @@ use burn::{
         linear::LinearLrSchedulerConfig,
     },
     prelude::*,
-    record::{CompactRecorder, NoStdTrainingRecorder},
     tensor::backend::AutodiffBackend,
     train::{
         EvaluatorBuilder, LearnerBuilder, MetricEarlyStoppingStrategy, StoppingCondition,
@@ -31,6 +30,14 @@ use burn::{
     },
 };
 use burn::{optim::AdamWConfig, train::LearningStrategy};
+use burn_central::{
+    experiment::ExperimentRun,
+    log::RemoteExperimentLoggerInstaller,
+    macros::register,
+    metrics::RemoteMetricLogger,
+    record::RemoteCheckpointRecorder,
+    runtime::{Args, Model, MultiDevice},
+};
 
 static ARTIFACT_DIR: &str = "/tmp/burn-example-mnist";
 
@@ -51,23 +58,65 @@ pub struct MnistTrainingConfig {
     pub optimizer: AdamWConfig,
 }
 
+impl From<ExperimentConfig> for MnistTrainingConfig {
+    fn from(config: ExperimentConfig) -> Self {
+        Self {
+            num_epochs: config.num_epochs,
+            batch_size: config.batch_size,
+            num_workers: config.num_workers,
+            seed: config.seed,
+            optimizer: AdamWConfig::new()
+                .with_cautious_weight_decay(true)
+                .with_weight_decay(5e-5),
+        }
+    }
+}
+
+#[derive(Config, Debug)]
+pub struct ExperimentConfig {
+    #[config(default = 20)]
+    pub num_epochs: usize,
+
+    #[config(default = 256)]
+    pub batch_size: usize,
+
+    #[config(default = 8)]
+    pub num_workers: usize,
+
+    #[config(default = 42)]
+    pub seed: u64,
+}
+
+impl Default for ExperimentConfig {
+    fn default() -> Self {
+        Self {
+            num_epochs: 10,
+            batch_size: 64,
+            num_workers: 4,
+            seed: 42,
+        }
+    }
+}
+
 fn create_artifact_dir(artifact_dir: &str) {
     // Remove existing artifacts before to get an accurate learner summary
     std::fs::remove_dir_all(artifact_dir).ok();
     std::fs::create_dir_all(artifact_dir).ok();
 }
 
-pub fn run<B: AutodiffBackend>(device: B::Device) {
+#[register(training)]
+pub fn run<B: AutodiffBackend>(
+    client: &ExperimentRun,
+    config: Args<ExperimentConfig>,
+    MultiDevice(devices): MultiDevice<B>,
+) -> Model<MnistModelArtifact<B::InnerBackend>> {
+    let device = devices.first().expect("No devices available").clone();
     create_artifact_dir(ARTIFACT_DIR);
-    // Config
-    let config_optimizer = AdamWConfig::new()
-        .with_cautious_weight_decay(true)
-        .with_weight_decay(5e-5);
 
-    let config = MnistTrainingConfig::new(config_optimizer);
+    let config: MnistTrainingConfig = config.0.into();
     B::seed(&device, config.seed);
 
-    let model = Model::<B>::new(&device);
+    let model = MnistModel::<B>::new(&device);
 
     let dataset_train_original = Arc::new(MnistDataset::train());
     let dataset_train_plain = PartialDataset::new(dataset_train_original.clone(), 0, 55_000);
@@ -94,10 +143,13 @@ pub fn run<B: AutodiffBackend>(device: B::Device) {
         .linear(LinearLrSchedulerConfig::new(1e-8, 1.0, 2000))
         .linear(LinearLrSchedulerConfig::new(1e-2, 1e-6, 10000));
 
+    // Inject in learner the remote loggers and recorders from burn-central
     let learner = LearnerBuilder::new(ARTIFACT_DIR)
         .metrics((AccuracyMetric::new(), LossMetric::new()))
         .metric_train_numeric(LearningRateMetric::new())
-        .with_file_checkpointer(CompactRecorder::new())
+        .with_metric_logger(RemoteMetricLogger::new(client))
+        .with_file_checkpointer(RemoteCheckpointRecorder::new(client))
+        .with_application_logger(Some(Box::new(RemoteExperimentLoggerInstaller::new(client))))
         .early_stopping(MetricEarlyStoppingStrategy::new(
             &LossMetric::<B>::new(),
             Aggregate::Mean,
@@ -133,25 +185,19 @@ pub fn run<B: AutodiffBackend>(device: B::Device) {
         );
     }
 
-    result
-        .model
-        .save_file(
-            format!("{ARTIFACT_DIR}/model"),
-            &NoStdTrainingRecorder::new(),
-        )
-        .expect("Failed to save trained model");
-
-    config
-        .save(format!("{ARTIFACT_DIR}/config.json").as_str())
-        .unwrap();
-
     renderer.manual_close();
+
+    // Return wrapper to burn-central
+    Model(MnistModelArtifact {
+        model_record: result.model.into_record(),
+        config,
+    })
 }
 
 fn evaluate<B: Backend>(
     name: &str,
     ident: DatasetIdent,
-    model: Model<B>,
+    model: MnistModel<B>,
     renderer: Box<dyn MetricsRenderer>,
     dataset: impl Dataset<MnistItem> + 'static,
     batch_size: usize,

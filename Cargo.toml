@@ -13,8 +13,10 @@ burn = { version = "0.20.0-pre.5", features = [
     "ndarray",
     "autotune",
 ], default-features = false }
+burn-central = "0.2.0"
 
 # Serialization
 log = "0.4.29"
 rand = "0.9.2"
-serde = { version = "1.0.228", features = ["std", "derive"] }
+serde_json = "1"
+serde = {version = "1.0.228", features = ["std", "derive"]}
