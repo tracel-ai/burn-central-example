@@ -1,0 +1,20 @@
+[package]
+name = "burn-central-example"
+edition = "2024"
+version = "0.1.0"
+
+[dependencies]
+burn = { version = "0.20.0-pre.5", features = [
+    "train",
+    "vision",
+    "metrics",
+    "std",
+    "fusion",
+    "ndarray",
+    "autotune",
+], default-features = false }
+
+# Serialization
+log = "0.4.29"
+rand = "0.9.2"
+serde = { version = "1.0.228", features = ["std", "derive"] }
