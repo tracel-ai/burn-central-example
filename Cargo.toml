@@ -4,7 +4,7 @@ edition = "2024"
 version = "0.1.0"
 
 [dependencies]
-burn = { version = "0.20.0-pre.5", features = [
+burn = { version = "=0.20.0-pre.5", features = [
     "train",
     "vision",
     "metrics",
