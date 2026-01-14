@@ -4,7 +4,7 @@ edition = "2024"
 version = "0.1.0"
 
 [dependencies]
-burn = { version = "=0.20.0-pre.6", features = [
+burn = {  git = "https://github.com/tracel-ai/burn", rev = "cc8f6d44d39b6192cd233c92f6e49134d81ab05f" , features = [
     "train",
     "vision",
     "metrics",
@@ -13,7 +13,8 @@ burn = { version = "=0.20.0-pre.6", features = [
     "ndarray",
     "autotune",
 ], default-features = false }
-burn-central = "0.2.2"
+burn-central = { git = "https://github.com/tracel-ai/burn-central", branch = "artifact-error-message" }
+
 
 # Serialization
 log = "0.4.29"
