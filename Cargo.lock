@@ -470,7 +470,7 @@ dependencies = [
 [[package]]
 name = "burn-central"
 version = "0.2.2"
-source = "git+https://github.com/tracel-ai/burn-central?branch=artifact-error-message#d182c0101608c2f10426e20f6f184422eb01fce5"
+source = "git+https://github.com/tracel-ai/burn-central?branch=artifact-error-message#6549828d63fc2212505eab3e14b8c53930149bb9"
 dependencies = [
  "burn-central-core",
  "burn-central-macros",
@@ -496,7 +496,7 @@ dependencies = [
 [[package]]
 name = "burn-central-core"
 version = "0.2.2"
-source = "git+https://github.com/tracel-ai/burn-central?branch=artifact-error-message#d182c0101608c2f10426e20f6f184422eb01fce5"
+source = "git+https://github.com/tracel-ai/burn-central?branch=artifact-error-message#6549828d63fc2212505eab3e14b8c53930149bb9"
 dependencies = [
  "burn",
  "burn-central-client",
@@ -531,7 +531,7 @@ dependencies = [
 [[package]]
 name = "burn-central-macros"
 version = "0.2.2"
-source = "git+https://github.com/tracel-ai/burn-central?branch=artifact-error-message#d182c0101608c2f10426e20f6f184422eb01fce5"
+source = "git+https://github.com/tracel-ai/burn-central?branch=artifact-error-message#6549828d63fc2212505eab3e14b8c53930149bb9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -544,7 +544,7 @@ dependencies = [
 [[package]]
 name = "burn-central-runtime"
 version = "0.2.2"
-source = "git+https://github.com/tracel-ai/burn-central?branch=artifact-error-message#d182c0101608c2f10426e20f6f184422eb01fce5"
+source = "git+https://github.com/tracel-ai/burn-central?branch=artifact-error-message#6549828d63fc2212505eab3e14b8c53930149bb9"
 dependencies = [
  "anyhow",
  "burn",
