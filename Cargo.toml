@@ -4,7 +4,7 @@ edition = "2024"
 version = "0.1.0"
 
 [dependencies]
-burn = { version = "=0.20.0-pre.5", features = [
+burn = { version = "=0.20.0-pre.6", features = [
     "train",
     "vision",
     "metrics",
@@ -13,10 +13,14 @@ burn = { version = "=0.20.0-pre.5", features = [
     "ndarray",
     "autotune",
 ], default-features = false }
-burn-central = "0.2.0"
+burn-central = "0.2.2"
 
 # Serialization
 log = "0.4.29"
 rand = "0.9.2"
 serde_json = "1"
 serde = {version = "1.0.228", features = ["std", "derive"]}
+
+[patch.crates-io]
+burn = { git = "https://github.com/tracel-ai/burn", rev = "cc8f6d44d39b6192cd233c92f6e49134d81ab05f" }
+burn-central = { git = "https://github.com/tracel-ai/burn-central", branch = "artifact-error-message" }

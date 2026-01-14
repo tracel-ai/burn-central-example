@@ -21,7 +21,7 @@ use burn::{
     prelude::*,
     tensor::backend::AutodiffBackend,
     train::{
-        EvaluatorBuilder, LearnerBuilder, MetricEarlyStoppingStrategy, StoppingCondition,
+        EvaluatorBuilder, MetricEarlyStoppingStrategy, StoppingCondition, SupervisedTraining,
         metric::{
             AccuracyMetric, LearningRateMetric, LossMetric,
             store::{Aggregate, Direction, Split},
@@ -29,13 +29,11 @@ use burn::{
         renderer::MetricsRenderer,
     },
 };
-use burn::{optim::AdamWConfig, train::LearningStrategy};
+use burn::{optim::AdamWConfig, train::Learner};
 use burn_central::{
     experiment::ExperimentRun,
-    log::RemoteExperimentLoggerInstaller,
+    integration::{RemoteCheckpointRecorder, RemoteMetricLogger},
     macros::register,
-    metrics::RemoteMetricLogger,
-    record::RemoteCheckpointRecorder,
     runtime::{Args, Model, MultiDevice},
 };
 
@@ -120,12 +118,11 @@ pub fn run<B: AutodiffBackend>(
         .linear(LinearLrSchedulerConfig::new(1e-2, 1e-6, 10000));
 
     // Inject in learner the remote loggers and recorders from burn-central
-    let learner = LearnerBuilder::new(ARTIFACT_DIR)
+    let training = SupervisedTraining::new(ARTIFACT_DIR, dataloader_train, dataloader_valid)
         .metrics((AccuracyMetric::new(), LossMetric::new()))
         .metric_train_numeric(LearningRateMetric::new())
-        .with_metric_logger(RemoteMetricLogger::new(client))
         .with_file_checkpointer(RemoteCheckpointRecorder::new(client))
-        .with_application_logger(Some(Box::new(RemoteExperimentLoggerInstaller::new(client))))
+        .with_metric_logger(RemoteMetricLogger::new(client))
         .early_stopping(MetricEarlyStoppingStrategy::new(
             &LossMetric::<B>::new(),
             Aggregate::Mean,
@@ -134,15 +131,13 @@ pub fn run<B: AutodiffBackend>(
             StoppingCondition::NoImprovementSince { n_epochs: 5 },
         ))
         .num_epochs(config.num_epochs)
-        .summary()
-        .build(
-            model,
-            config.optimizer.init(),
-            lr_scheduler.init().unwrap(),
-            LearningStrategy::SingleDevice(device),
-        );
+        .summary();
 
-    let result = learner.fit(dataloader_train, dataloader_valid);
+    let result = training.launch(Learner::new(
+        model,
+        config.optimizer.init(),
+        lr_scheduler.init().unwrap(),
+    ));
 
     let dataset_test_plain = Arc::new(MnistDataset::test());
     let mut renderer = result.renderer;
