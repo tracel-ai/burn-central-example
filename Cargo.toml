@@ -12,6 +12,7 @@ burn = { version = "=0.20.0-pre.6", features = [
     "fusion",
     "ndarray",
     "autotune",
+    "cpu"
 ], default-features = false }
 burn-central = "0.2.2"
 
