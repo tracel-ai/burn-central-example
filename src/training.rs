@@ -57,7 +57,7 @@ pub struct MnistTrainingConfig {
 }
 
 /// Implement default training configuration. The burn-central-cli will be able to override those
-/// value and those not specified will use their default value.
+/// value and those not specifed will use their default value.
 impl Default for MnistTrainingConfig {
     fn default() -> Self {
         Self {
