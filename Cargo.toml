@@ -13,7 +13,7 @@ burn = { version = "0.20.0", features = [
     "ndarray",
     "autotune",
 ], default-features = false }
-burn-central = "0.2.2"
+burn-central = "0.4.0"
 
 # Serialization
 log = "0.4.29"

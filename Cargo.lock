@@ -473,8 +473,9 @@ dependencies = [
 
 [[package]]
 name = "burn-central"
-version = "0.2.2"
-source = "git+https://github.com/tracel-ai/burn-central?branch=main#c8cbca76c35dd0158db6d783419f479b863277ab"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1c49bb7a4d96bd38306f41ce89901402a9712b769b472e900a2534d6cd3df9b4"
 dependencies = [
  "burn-central-core",
  "burn-central-macros",
@@ -499,8 +500,9 @@ dependencies = [
 
 [[package]]
 name = "burn-central-core"
-version = "0.2.2"
-source = "git+https://github.com/tracel-ai/burn-central?branch=main#c8cbca76c35dd0158db6d783419f479b863277ab"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "10b6155270ef73a39dd4ed791cd719a8ca2bae0d4dff073187900d66af350f5c"
 dependencies = [
  "burn",
  "burn-central-client",
@@ -534,8 +536,9 @@ dependencies = [
 
 [[package]]
 name = "burn-central-macros"
-version = "0.2.2"
-source = "git+https://github.com/tracel-ai/burn-central?branch=main#c8cbca76c35dd0158db6d783419f479b863277ab"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "27cc19c861af4c72c3738754572c5ebecf9d9e8d06a75feee67f5749108a3046"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -547,8 +550,9 @@ dependencies = [
 
 [[package]]
 name = "burn-central-runtime"
-version = "0.2.2"
-source = "git+https://github.com/tracel-ai/burn-central?branch=main#c8cbca76c35dd0158db6d783419f479b863277ab"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6510b529dd0b20a65d731b4a671683bbaa33aafa08aaa2b58977c56e4c8bf1cc"
 dependencies = [
  "anyhow",
  "burn",
@@ -564,6 +568,8 @@ dependencies = [
  "strum",
  "syn",
  "thiserror 2.0.17",
+ "tracing",
+ "tracing-subscriber",
  "tynm",
  "variadics_please",
 ]
@@ -3570,6 +3576,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "matchers"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d1525a2a28c7f4fa0fc98bb91ae755d1e2d1505079e05539e35bc876b5d65ae9"
+dependencies = [
+ "regex-automata",
+]
+
+[[package]]
 name = "matrixmultiply"
 version = "0.3.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5742,10 +5757,14 @@ version = "0.3.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2f30143827ddab0d256fd843b7a66d164e9f271cfa0dde49142c5ca0ca291f1e"
 dependencies = [
+ "matchers",
  "nu-ansi-term",
+ "once_cell",
+ "regex-automata",
  "sharded-slab",
  "smallvec",
  "thread_local",
+ "tracing",
  "tracing-core",
  "tracing-log",
 ]
@@ -6913,3 +6932,8 @@ checksum = "e35aee689668bf9bd6f6f3a6c60bb29ba1244b3b43adfd50edd554a371da37d5"
 dependencies = [
  "zune-core 0.5.0",
 ]
+
+[[patch.unused]]
+name = "burn-central"
+version = "0.2.2"
+source = "git+https://github.com/tracel-ai/burn-central?branch=main#c8cbca76c35dd0158db6d783419f479b863277ab"

@@ -38,7 +38,6 @@ use burn_central::{
 };
 
 static ARTIFACT_DIR: &str = "/tmp/burn-example-mnist";
-//ss
 #[derive(Config, Debug)]
 pub struct MnistTrainingConfig {
     #[config(default = 20)]
