@@ -59,15 +59,11 @@ pub struct MnistTrainingConfig {
 /// value and those not specified will use their default value.
 impl Default for MnistTrainingConfig {
     fn default() -> Self {
-        Self {
-            num_epochs: 20,
-            batch_size: 256,
-            num_workers: 8,
-            seed: 42,
-            optimizer: AdamWConfig::new()
+        Self::new(
+            AdamWConfig::new()
                 .with_cautious_weight_decay(true)
                 .with_weight_decay(5e-5),
-        }
+        )
     }
 }
 
