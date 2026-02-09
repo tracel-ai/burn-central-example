@@ -1,2 +1,2 @@
 [patch.crates-io]
-burn-central = { git = "https://github.com/tracel-ai/burn-central", branch = "main" }
+# burn-central = { git = "https://github.com/tracel-ai/burn-central", branch = "main" }

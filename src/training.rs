@@ -32,7 +32,7 @@ use burn::{
 use burn::{optim::AdamWConfig, train::Learner};
 use burn_central::{
     experiment::ExperimentRun,
-    integration::{RemoteCheckpointRecorder, RemoteMetricLogger},
+    integration::{RemoteCheckpointRecorder, RemoteMetricLogger, remote_interrupter},
     macros::register,
     runtime::{Args, Model, MultiDevice},
 };
@@ -118,6 +118,7 @@ pub fn run<B: AutodiffBackend>(
         .metric_train_numeric(LearningRateMetric::new())
         .with_file_checkpointer(RemoteCheckpointRecorder::new(client))
         .with_metric_logger(RemoteMetricLogger::new(client))
+        .with_interrupter(remote_interrupter(client))
         .early_stopping(MetricEarlyStoppingStrategy::new(
             &LossMetric::<B>::new(),
             Aggregate::Mean,
