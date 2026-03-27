@@ -32,9 +32,7 @@ use burn::{
 };
 use burn::{optim::AdamWConfig, train::Learner};
 use burn_central::{
-    artifacts::ArtifactKind,
-    experiment::ExperimentRun,
-    integration::{RemoteCheckpointRecorder, RemoteMetricLogger, remote_interrupter},
+    experiment::{ArtifactKind, ExperimentRun, integration::training::ExperimentTrainingExt},
     macros::register,
     runtime::{Args, Model, MultiDevice},
 };
@@ -87,7 +85,7 @@ pub fn run<B: AutodiffBackend>(
     let model = MnistModel::<B>::new(&device);
 
     // Training phase
-    let result = train::<B>(model, &config, Some(client));
+    let result = train::<B>(model, &config, client);
 
     // Evaluation phase
     let dataset_test_plain = Arc::new(MnistDataset::test());
@@ -117,13 +115,11 @@ pub fn run<B: AutodiffBackend>(
 }
 
 pub fn run_manual<B: AutodiffBackend>(
-    experiment: Option<&ExperimentRun>,
+    experiment: &ExperimentRun,
     config: MnistTrainingConfig,
     devices: Vec<B::Device>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    if let Some(experiment) = experiment {
-        experiment.log_args(&config)?;
-    }
+    experiment.log_args(&config)?;
 
     let device = devices.first().expect("No devices available").clone();
     B::seed(&device, config.seed);
@@ -154,13 +150,11 @@ pub fn run_manual<B: AutodiffBackend>(
     renderer.manual_close();
 
     // Save the artifact to the experiment
-    if let Some(experiment) = experiment {
-        let artifact = MnistModelArtifact {
-            model_record: result.model.into_record(),
-            config,
-        };
-        experiment.log_artifact("model", ArtifactKind::Model, artifact, &())?;
-    }
+    let artifact = MnistModelArtifact {
+        model_record: result.model.into_record(),
+        config,
+    };
+    experiment.save_artifact("model", ArtifactKind::Model, artifact, &())?;
 
     Ok(())
 }
@@ -168,7 +162,7 @@ pub fn run_manual<B: AutodiffBackend>(
 fn train<B: AutodiffBackend>(
     model: MnistModel<B>,
     config: &MnistTrainingConfig,
-    experiment: Option<&ExperimentRun>,
+    experiment: &ExperimentRun,
 ) -> LearningResult<MnistModel<B::InnerBackend>> {
     create_artifact_dir(ARTIFACT_DIR);
 
@@ -210,13 +204,11 @@ fn train<B: AutodiffBackend>(
         .num_epochs(config.num_epochs)
         .summary();
 
-    // Configure the remote integrations from burn-central if an experiment is provided.
-    if let Some(experiment) = experiment {
-        training = training
-            .with_file_checkpointer(RemoteCheckpointRecorder::new(experiment))
-            .with_metric_logger(RemoteMetricLogger::new(experiment))
-            .with_interrupter(remote_interrupter(experiment));
-    }
+    // Configure the training integrations from burn-central
+    training = training
+        .with_file_checkpointer(experiment.checkpoint_recorder())
+        .with_metric_logger(experiment.metric_logger())
+        .with_interrupter(experiment.interrupter());
 
     let result = training.launch(Learner::new(
         model,

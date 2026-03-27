@@ -1,3 +1,9 @@
+#![recursion_limit = "256"]
+
+use burn_central::experiment::{
+    ExperimentRun,
+    integration::tracing::{ExperimentTracingExt, try_init_tracing_subscriber},
+};
 use burn_central_example::training::MnistTrainingConfig;
 
 #[cfg(feature = "cuda")]
@@ -11,36 +17,38 @@ type Device = <TBackend as burn::tensor::backend::Backend>::Device;
 type TAutodiffBackend = burn::backend::Autodiff<TBackend>;
 
 fn main() {
-    let api_key = std::env::var("BURN_CENTRAL_API_KEY")
-        .expect("BURN_CENTRAL_API_KEY environment variable must be set");
-
-    let namespace = "jwric";
-    let project_name = "burn-central-example";
-    // This is a problem we are currently bound to the digest as we use it in remote launching features.
-    // We could make it optional
-    let digest = "489b819dc87e8fa398d3e6b44b63fe242c90f6b537293c8a85b3e886dee15139".to_string();
-    let routine = "my_training_routine".to_string();
-    let exp_metadata = serde_json::json!({
-        "namespace": namespace,
-        "project_name": project_name,
-        "digest": digest,
-    });
+    try_init_tracing_subscriber();
 
     let device = Device::default();
 
-    let experiment =
-        burn_central::BurnCentral::login(burn_central::BurnCentralCredentials::new(api_key))
-            .unwrap()
-            .start_experiment(namespace, project_name, digest, routine)
-            .unwrap();
+    let exp_dir = "./experiments";
+    let experiment = ExperimentRun::local(exp_dir).unwrap();
+    let _tracing_guard = experiment.tracing_span();
 
-    experiment.log_config("metadata", &exp_metadata).unwrap();
+    install_ctrlc(&experiment);
 
     let config = MnistTrainingConfig::default();
 
-    let _ = burn_central_example::training::run_manual::<TAutodiffBackend>(
-        Some(&experiment),
-        config,
-        vec![device],
-    );
+    let res = _tracing_guard.in_scope(|| {
+        burn_central_example::training::run_manual::<TAutodiffBackend>(
+            &experiment,
+            config,
+            vec![device],
+        )
+    });
+
+    if let Err(e) = res {
+        eprintln!("Error during training: {e}");
+    } else {
+        println!("Training completed successfully.");
+    }
+}
+
+fn install_ctrlc(experiment: &ExperimentRun) {
+    let cancel_token = experiment.cancel_token();
+    ctrlc::set_handler(move || {
+        cancel_token.cancel();
+        println!("Received Ctrl-C, sending cancellation request to experiment...");
+    })
+    .expect("Error setting Ctrl-C handler");
 }
