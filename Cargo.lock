@@ -519,10 +519,8 @@ dependencies = [
 name = "burn-central-artifact"
 version = "0.6.0"
 dependencies = [
- "crossbeam",
  "reqwest 0.13.2",
  "serde",
- "serde_json",
  "sha2",
  "tempfile",
  "thiserror 2.0.18",
