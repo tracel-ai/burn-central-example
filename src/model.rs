@@ -10,7 +10,7 @@ use burn::{
     tensor::backend::AutodiffBackend,
     train::{ClassificationOutput, InferenceStep, TrainOutput, TrainStep},
 };
-use burn_central::bundle::{BundleDecode, BundleEncode, BundleSink, BundleSource};
+use burn_central::artifact::bundle::{BundleDecode, BundleEncode, BundleSink, BundleSource};
 
 #[derive(Module, Debug)]
 pub struct MnistModel<B: Backend> {
