@@ -559,6 +559,7 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
+ "tracing",
 ]
 
 [[package]]

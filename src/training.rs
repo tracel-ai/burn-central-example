@@ -105,6 +105,11 @@ pub fn run<B: AutodiffBackend>(
         );
     }
 
+    tracing::info!(
+        field1 = "Evaluation",
+        "All evaluations done, closing renderer..."
+    );
+
     renderer.manual_close();
 
     // Return wrapper to burn-central
