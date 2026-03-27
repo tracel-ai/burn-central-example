@@ -21,7 +21,8 @@ use burn::{
     prelude::*,
     tensor::backend::AutodiffBackend,
     train::{
-        EvaluatorBuilder, MetricEarlyStoppingStrategy, StoppingCondition, SupervisedTraining,
+        EvaluatorBuilder, LearningResult, MetricEarlyStoppingStrategy, StoppingCondition,
+        SupervisedTraining,
         metric::{
             AccuracyMetric, LearningRateMetric, LossMetric,
             store::{Aggregate, Direction, Split},
@@ -31,6 +32,7 @@ use burn::{
 };
 use burn::{optim::AdamWConfig, train::Learner};
 use burn_central::{
+    artifacts::ArtifactKind,
     experiment::ExperimentRun,
     integration::{RemoteCheckpointRecorder, RemoteMetricLogger, remote_interrupter},
     macros::register,
@@ -76,16 +78,99 @@ fn create_artifact_dir(artifact_dir: &str) {
 #[register(training, name = "train_mnist")]
 pub fn run<B: AutodiffBackend>(
     client: &ExperimentRun,
-    config: Args<MnistTrainingConfig>,
+    Args(config): Args<MnistTrainingConfig>,
     MultiDevice(devices): MultiDevice<B>,
 ) -> Model<MnistModelArtifact<B::InnerBackend>> {
     let device = devices.first().expect("No devices available").clone();
-    create_artifact_dir(ARTIFACT_DIR);
-
-    let config: MnistTrainingConfig = config.0.into();
     B::seed(&device, config.seed);
 
     let model = MnistModel::<B>::new(&device);
+
+    // Training phase
+    let result = train::<B>(model, &config, Some(client));
+
+    // Evaluation phase
+    let dataset_test_plain = Arc::new(MnistDataset::test());
+    let mut renderer = result.renderer;
+
+    let idents_tests = generate_idents(None);
+
+    for (ident, _) in idents_tests {
+        let name = ident.to_string();
+        renderer = evaluate::<B::InnerBackend>(
+            name.as_str(),
+            ident,
+            result.model.clone(),
+            renderer,
+            dataset_test_plain.clone(),
+            config.batch_size,
+        );
+    }
+
+    renderer.manual_close();
+
+    // Return wrapper to burn-central
+    Model(MnistModelArtifact {
+        model_record: result.model.into_record(),
+        config,
+    })
+}
+
+pub fn run_manual<B: AutodiffBackend>(
+    experiment: Option<&ExperimentRun>,
+    config: MnistTrainingConfig,
+    devices: Vec<B::Device>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    if let Some(experiment) = experiment {
+        experiment.log_args(&config)?;
+    }
+
+    let device = devices.first().expect("No devices available").clone();
+    B::seed(&device, config.seed);
+
+    let model = MnistModel::<B>::new(&device);
+
+    // Training phase
+    let result = train::<B>(model, &config, experiment);
+
+    // Evaluation phase
+    let dataset_test_plain = Arc::new(MnistDataset::test());
+    let mut renderer = result.renderer;
+
+    let idents_tests = generate_idents(None);
+
+    for (ident, _) in idents_tests {
+        let name = ident.to_string();
+        renderer = evaluate::<B::InnerBackend>(
+            name.as_str(),
+            ident,
+            result.model.clone(),
+            renderer,
+            dataset_test_plain.clone(),
+            config.batch_size,
+        );
+    }
+
+    renderer.manual_close();
+
+    // Save the artifact to the experiment
+    if let Some(experiment) = experiment {
+        let artifact = MnistModelArtifact {
+            model_record: result.model.into_record(),
+            config,
+        };
+        experiment.log_artifact("model", ArtifactKind::Model, artifact, &())?;
+    }
+
+    Ok(())
+}
+
+fn train<B: AutodiffBackend>(
+    model: MnistModel<B>,
+    config: &MnistTrainingConfig,
+    experiment: Option<&ExperimentRun>,
+) -> LearningResult<MnistModel<B::InnerBackend>> {
+    create_artifact_dir(ARTIFACT_DIR);
 
     let dataset_train_original = Arc::new(MnistDataset::train());
     let dataset_train_plain = PartialDataset::new(dataset_train_original.clone(), 0, 55_000);
@@ -112,13 +197,9 @@ pub fn run<B: AutodiffBackend>(
         .linear(LinearLrSchedulerConfig::new(1e-8, 1.0, 2000))
         .linear(LinearLrSchedulerConfig::new(1e-2, 1e-6, 10000));
 
-    // Inject in learner the remote loggers and recorders from burn-central
-    let training = SupervisedTraining::new(ARTIFACT_DIR, dataloader_train, dataloader_valid)
+    let mut training = SupervisedTraining::new(ARTIFACT_DIR, dataloader_train, dataloader_valid)
         .metrics((AccuracyMetric::new(), LossMetric::new()))
         .metric_train_numeric(LearningRateMetric::new())
-        .with_file_checkpointer(RemoteCheckpointRecorder::new(client))
-        .with_metric_logger(RemoteMetricLogger::new(client))
-        .with_interrupter(remote_interrupter(client))
         .early_stopping(MetricEarlyStoppingStrategy::new(
             &LossMetric::<B>::new(),
             Aggregate::Mean,
@@ -129,36 +210,21 @@ pub fn run<B: AutodiffBackend>(
         .num_epochs(config.num_epochs)
         .summary();
 
+    // Configure the remote integrations from burn-central if an experiment is provided.
+    if let Some(experiment) = experiment {
+        training = training
+            .with_file_checkpointer(RemoteCheckpointRecorder::new(experiment))
+            .with_metric_logger(RemoteMetricLogger::new(experiment))
+            .with_interrupter(remote_interrupter(experiment));
+    }
+
     let result = training.launch(Learner::new(
         model,
         config.optimizer.init(),
         lr_scheduler.init().unwrap(),
     ));
 
-    let dataset_test_plain = Arc::new(MnistDataset::test());
-    let mut renderer = result.renderer;
-
-    let idents_tests = generate_idents(None);
-
-    for (ident, _) in idents_tests {
-        let name = ident.to_string();
-        renderer = evaluate::<B::InnerBackend>(
-            name.as_str(),
-            ident,
-            result.model.clone(),
-            renderer,
-            dataset_test_plain.clone(),
-            config.batch_size,
-        );
-    }
-
-    renderer.manual_close();
-
-    // Return wrapper to burn-central
-    Model(MnistModelArtifact {
-        model_record: result.model.into_record(),
-        config,
-    })
+    result
 }
 
 fn evaluate<B: Backend>(
