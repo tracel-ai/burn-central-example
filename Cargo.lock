@@ -504,8 +504,7 @@ dependencies = [
 
 [[package]]
 name = "burn-central"
-version = "0.5.0"
-source = "git+https://github.com/tracel-ai/burn-central?branch=main#5827bd9f635263f6ec17a5ba38f048833a01e46e"
+version = "0.6.0"
 dependencies = [
  "burn-central-artifact",
  "burn-central-client",
@@ -518,8 +517,7 @@ dependencies = [
 
 [[package]]
 name = "burn-central-artifact"
-version = "0.5.0"
-source = "git+https://github.com/tracel-ai/burn-central?branch=main#5827bd9f635263f6ec17a5ba38f048833a01e46e"
+version = "0.6.0"
 dependencies = [
  "crossbeam",
  "reqwest 0.13.2",
@@ -548,8 +546,7 @@ dependencies = [
 
 [[package]]
 name = "burn-central-core"
-version = "0.5.0"
-source = "git+https://github.com/tracel-ai/burn-central?branch=main#5827bd9f635263f6ec17a5ba38f048833a01e46e"
+version = "0.6.0"
 
 [[package]]
 name = "burn-central-example"
@@ -566,8 +563,7 @@ dependencies = [
 
 [[package]]
 name = "burn-central-experiment"
-version = "0.5.0"
-source = "git+https://github.com/tracel-ai/burn-central?branch=main#5827bd9f635263f6ec17a5ba38f048833a01e46e"
+version = "0.6.0"
 dependencies = [
  "burn",
  "burn-central-artifact",
@@ -583,8 +579,7 @@ dependencies = [
 
 [[package]]
 name = "burn-central-fleet"
-version = "0.5.0"
-source = "git+https://github.com/tracel-ai/burn-central?branch=main#5827bd9f635263f6ec17a5ba38f048833a01e46e"
+version = "0.6.0"
 dependencies = [
  "arc-swap",
  "burn",
@@ -609,8 +604,7 @@ dependencies = [
 
 [[package]]
 name = "burn-central-inference"
-version = "0.5.0"
-source = "git+https://github.com/tracel-ai/burn-central?branch=main#5827bd9f635263f6ec17a5ba38f048833a01e46e"
+version = "0.6.0"
 dependencies = [
  "crossbeam",
  "serde",
@@ -620,8 +614,7 @@ dependencies = [
 
 [[package]]
 name = "burn-central-macros"
-version = "0.5.0"
-source = "git+https://github.com/tracel-ai/burn-central?branch=main#5827bd9f635263f6ec17a5ba38f048833a01e46e"
+version = "0.6.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -632,8 +625,7 @@ dependencies = [
 
 [[package]]
 name = "burn-central-runtime"
-version = "0.5.0"
-source = "git+https://github.com/tracel-ai/burn-central?branch=main#5827bd9f635263f6ec17a5ba38f048833a01e46e"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "burn",
@@ -3107,7 +3099,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.62.2",
+ "windows-core 0.61.2",
 ]
 
 [[package]]
@@ -6619,19 +6611,6 @@ dependencies = [
  "windows-link 0.1.3",
  "windows-result 0.3.4",
  "windows-strings 0.4.2",
-]
-
-[[package]]
-name = "windows-core"
-version = "0.62.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8e83a14d34d0623b51dce9581199302a221863196a1dde71a7663a4c2be9deb"
-dependencies = [
- "windows-implement 0.60.2",
- "windows-interface 0.59.3",
- "windows-link 0.2.1",
- "windows-result 0.4.1",
- "windows-strings 0.5.1",
 ]
 
 [[package]]
