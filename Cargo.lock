@@ -505,6 +505,8 @@ dependencies = [
 [[package]]
 name = "burn-central"
 version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dd8e3ac31fa350b81ccfb8af593ffea857ace30d8faff5fcca8de546a99ac75c"
 dependencies = [
  "burn-central-artifact",
  "burn-central-client",
@@ -518,6 +520,8 @@ dependencies = [
 [[package]]
 name = "burn-central-artifact"
 version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b57a5e4b8ee85e37c17a391c5ce73db3b4149a871abb826a76fdb3eaf7795d82"
 dependencies = [
  "reqwest 0.13.2",
  "serde",
@@ -545,6 +549,8 @@ dependencies = [
 [[package]]
 name = "burn-central-core"
 version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dfb596ff639b7325c0cbf7a5d840d3fb5bed67cb6da0b9413c5398df9437faff"
 
 [[package]]
 name = "burn-central-example"
@@ -563,6 +569,8 @@ dependencies = [
 [[package]]
 name = "burn-central-experiment"
 version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35cd4b951b7e201685b7958b04e6f53ea6cea88481ad99068ea7e8b0227e6fec"
 dependencies = [
  "burn",
  "burn-central-artifact",
@@ -579,6 +587,8 @@ dependencies = [
 [[package]]
 name = "burn-central-fleet"
 version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b79a54a8cd2e2ab3a7a3d2e53d0c083d25a3171c0a1ba5bd86001793ad125a71"
 dependencies = [
  "arc-swap",
  "burn",
@@ -604,6 +614,8 @@ dependencies = [
 [[package]]
 name = "burn-central-inference"
 version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4697845637f3877deba592c49dc08608eb16d50f541d463ef56a2c3d1d1645e5"
 dependencies = [
  "crossbeam",
  "serde",
@@ -614,6 +626,8 @@ dependencies = [
 [[package]]
 name = "burn-central-macros"
 version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "467164996cadfee1d1823df1efc2a2aeffaed6b6b061dae410e41dcf788576b2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -625,6 +639,8 @@ dependencies = [
 [[package]]
 name = "burn-central-runtime"
 version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "108eab883cdfe992366022bd156d6ac8877e2673b6e26eca862d908b0eed7a27"
 dependencies = [
  "anyhow",
  "burn",
